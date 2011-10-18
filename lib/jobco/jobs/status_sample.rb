@@ -1,24 +1,26 @@
-require "jobco/resque"
+require "resque"
+require "resque/job_with_status"
 
 module JobCo
   module Jobs
-    class StatusSample < Resque::JobWithStatus
+    class StatusSample < ::Resque::JobWithStatus
       @queue = :sample_queue
 
+      # JobWithStatus requires instance method instead of class method
       def perform
         puts "Hi I'm a sample JobCo Resque Worker With Status!"
-        puts "This will show up on worker process STDOUT, and will probably not be logged."
+        puts "This will show up on worker process STDOUT, and might be logged somewhere."
 
         STDERR.puts "Hi I'm a sample JobCo Resque Worker !"
-        STDERR.puts "This will show up on worker process STDERR, and should be caught by Resque."
+        STDERR.puts "This will show up on worker process STDERR, will probably end up in /dev/null."
 
         global_redis = Redis.new
         job_fail "Why, no redis ?" unless global_redis
 
-        redis = Redis::Namespace.new(namespace, :redis => global_redis)
+        redis = Redis::Namespace.new("status_sample_job", :redis => global_redis)
         job_fail "Why, no redis namespace ?" unless redis
 
-        0..300.each do |i|
+        (0..300).each do |i|
           redis.sadd("flushme", "%03i/300 - %s" % [i, Time.now.to_s])
           sleep 0.2
           at((100 * i / 300).floor, 100, "Dancing the sample dance") if i % 3 == 0

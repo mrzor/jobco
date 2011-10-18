@@ -10,16 +10,17 @@ module JobCo
         end
       end
 
-      subcommand "enqueue", "manually enqueue a job" do
+      subcommand ["q", "enqueue"], "manually enqueue a job" do
         self.description = "Manual enqueuing ignores scheduling, and does not support parameters."
         parameter "NAME", "name of the job to run"
         def execute
           c = available_jobs.select { |j| j.to_s.downcase.include?(name) }
           if c.size > 1
-            puts "Different jobs match `#{name}':"
-            c.each { |x| puts " * #{x}" }
+            abort "Different jobs match `#{name}': #{c.join(', ')}"
+          elsif c.empty?
+            abort "No jobs are matching `#{name}'. Use `jobs ls' command."
           end
-          ::Resque.enqueue(c)
+          enqueue c.first
         end
       end
 
@@ -30,7 +31,17 @@ module JobCo
           JobCo::Jobs.const_get(c)
         end.select { |c| c.is_a?(Class) }
 
-        # FIXME: check that class has a perform method
+      end
+
+      def enqueue klass
+        if klass.ancestors.include?(::Resque::JobWithStatus)
+          job_id = klass.create
+          puts "Queue JobWithStatus ID=#{job_id}"
+        elsif true # FIXME: check that class has a perform method
+          ::Resque.enqueue(c)
+        else
+          abort "unsupported class #{klass} for enqueuing"
+        end
       end
     end
   end
