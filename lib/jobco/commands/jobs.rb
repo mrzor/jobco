@@ -35,6 +35,7 @@ module JobCo
 
       def enqueue klass
         if klass.ancestors.include?(::Resque::JobWithStatus)
+          ::Resque::Status.expire_in = 7 * (72 * 60 * 60) # A week, in seconds
           job_id = klass.create
           puts "Queue JobWithStatus ID=#{job_id}"
         elsif true # FIXME: check that class has a perform method

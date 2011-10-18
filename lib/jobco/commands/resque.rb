@@ -6,6 +6,7 @@ module JobCo
     class Resque < Clamp::Command
       subcommand "run_worker", "forks a worker in the background" do
         option(["-q", "--quiet"], :flag, "Be quiet", :default => false)
+        option(["-v", "--verbose"], :flag, "Be verbose", :default => false)
         option(["-i", "--interval"],
                "INTERVAL", "Interval at which ",
                :default => (ENV['INTERVAL'] || 5).to_i)
@@ -46,7 +47,7 @@ module JobCo
 
           worker = ::Resque::Worker.new(queues)
           worker.verbose = !quiet?
-          # worker.very_verbose = true
+          worker.very_verbose = verbose?
           worker.work(interval)
         end
       end
