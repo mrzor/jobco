@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+require 'rubygems'
+require 'pp'
+require 'clamp'
+require 'jobco'
+require 'jobco/commands'
+
+JobCo::Commands::Main.run if File::basename(__FILE__) == File::basename($0)
