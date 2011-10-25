@@ -6,12 +6,12 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Elie Zor"]
   s.email       = ["elie@letitcast.com"]
-  s.homepage    = "http://github.com/iconocast/jobcenter"
-  s.summary     = "The best way to launch jobs for LIC"
-  s.description = "Jobcenter provides command & control for LIC resque jobs, and more."
+  s.homepage    = "http://github.com/mrzor/jobco"
+  s.summary     = "A simple Resque distribution"
+  s.description = "Jobco provides command & control for resque jobs, and much needed sugar."
 
   s.required_rubygems_version = ">= 1.3.6"
-  s.rubyforge_project         = "bundler"
+  s.rubyforge_project         = "jobco"
 
   s.add_dependency('resque', '>= 1.17.1')
   s.add_dependency('resque-scheduler', '>= 2.0.0d')

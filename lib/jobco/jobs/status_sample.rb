@@ -1,9 +1,8 @@
-require "resque"
-require "resque/job_with_status"
+require "jobco/job"
 
 module JobCo
   module Jobs
-    class StatusSample < ::Resque::JobWithStatus
+    class StatusSample < JobCo::Job
       @queue = :sample_queue
 
       # JobWithStatus requires instance method instead of class method

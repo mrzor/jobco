@@ -1,0 +1,31 @@
+# -*- ruby -*-
+
+# This is a sample Jobfile
+
+# This will make JobCo sample jobs known to jobco
+# You will more likely use MyCompany::Jobs
+job_module JobCo::Jobs
+
+# JobCo allows you to send configuration to your jobs, so that
+# you can handle parameters like credentials without messing with
+# actual job parameters.
+
+# It also keeps the burden of setting up job configuration at enqueue
+# time, removing the dependency between the worker instance and configuration
+# data. If configuration changes, workers don't have to be updated,
+# making deployment less error-prone.
+
+# To access configuration, use JobCo::Config likewise:
+# JobCo::Config.key_a
+
+env :development do
+  jobconf "key_a", "value"
+  jobconf "key_b", {
+    subkey_a: "w00t",
+    subkey_b: 1337
+  }
+end
+
+env(:prod) do
+  jobconf "very serious", "value"
+end

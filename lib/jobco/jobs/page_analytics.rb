@@ -1,5 +1,4 @@
-require "resque"
-require "resque/job_with_status"
+require "jobco/job"
 require "garb"
 
 class Pageviews
@@ -11,7 +10,9 @@ end
 
 module JobCo
   module Jobs
-    class PageAnalytics < ::Resque::JobWithStatus
+    class PageAnalytics < Job
+      @queue = :google_analytics
+
       def perform
         Garb::Session.login("elie@letitcast.com", "XXX")
         profile = Garb::Management::Profile.all.first
@@ -31,7 +32,8 @@ module JobCo
           @counters[slug]["overall"] += pageviews
         end
 
-        pp @counters
+        rn = Redis::Namespace.new("lic_public_page_counters", :redis => Resque.redis.redis)
+        @counters.each_pair { |slug, langs| rn.hset("overall_views", slug, langs["overall"]) }
       end
     end
   end

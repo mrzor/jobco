@@ -26,8 +26,10 @@ module JobCo
         def queues= v;  @queues = v.to_s.split(','); end
 
         def execute
-          require 'jobco/jobs'
           require 'resque/worker'
+
+          require 'jobco/jobs'
+          JobCo::Jobs::load_available_jobs
 
           if kill?
             ids = `resque list`
@@ -62,8 +64,9 @@ module JobCo
         option(["-q", "--quiet"], :flag, "Be quiet", :default => false)
 
         def execute
+          require 'resque_scheduler'
           require 'resque/scheduler'
-          Resque::Scheduler::dynamic = true
+          ::Resque::Scheduler::dynamic = true
 
           if background?
             abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
