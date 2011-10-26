@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+
 Gem::Specification.new do |s|
   s.name        = "jobco"
   s.version     = "0.0.1"
@@ -18,7 +19,10 @@ Gem::Specification.new do |s|
   s.add_dependency('resque-status', '>= 0.2.3')
   s.add_dependency('clamp', '>= 0.2.3')
 
-  s.files        = Dir.glob("lib/**/*") + Dir.glob("bin/jobco*")
+  libglob = File::join(File::dirname(__FILE__), "lib/**/*")
+  binglob = File::join(File::dirname(__FILE__), "bin/jobco*")
+
+  s.files        = Dir[libglob] + Dir[binglob]
   s.executables  = ['jobco']
   s.require_path = 'lib'
 end
