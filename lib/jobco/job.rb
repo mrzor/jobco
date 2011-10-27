@@ -19,6 +19,8 @@ module JobCo
 
     def jobconf
       return @jobconf if @jobconf
+
+      require "json"
       rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
       @jobconf = JSON.parse(rn.hget("conf", @uuid), :symbolize_names => true)
       rn.hdel("conf", @uuid)
