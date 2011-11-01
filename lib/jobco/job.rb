@@ -27,7 +27,7 @@ module JobCo
 
       require "base64"
       rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-      @jobconf = Marsh.load(Base64.decode(rn.hget("conf", @uuid)))
+      @jobconf = Marshal.load(Base64.decode(rn.hget("conf", @uuid)))
       rn.hdel("conf", @uuid)
       @jobconf
     end
