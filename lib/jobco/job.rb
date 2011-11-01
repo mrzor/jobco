@@ -17,7 +17,7 @@ module JobCo
 
       uuid = ::Resque::Status.create :options => options
       rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-      rn.hset("conf", uuid, Base64.encode(Marshal.dump(JobCo::Config)))
+      rn.hset("conf", uuid, Base64.encode64(Marshal.dump(JobCo::Config)))
       ::Resque.enqueue(klass, uuid, options)
       uuid
     end
@@ -27,7 +27,7 @@ module JobCo
 
       require "base64"
       rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-      @jobconf = Marshal.load(Base64.decode(rn.hget("conf", @uuid)))
+      @jobconf = Marshal.load(Base64.decode64(rn.hget("conf", @uuid)))
       rn.hdel("conf", @uuid)
       @jobconf
     end
