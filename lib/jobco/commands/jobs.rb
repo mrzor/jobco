@@ -3,6 +3,8 @@ require "jobco/jobs"
 module JobCo
   module Commands
     class Jobs < Clamp::Command
+      option ["-j", "--jobfile"], "JOBFILE", "Use a specific Jobfile (default: looks up for Jobfile in current dir or any parent)"
+
       subcommand ["ls", "list"], "available jobs" do
         def execute
           puts "Jobs known to JobCo:"

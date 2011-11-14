@@ -4,8 +4,9 @@ module JobCo
   Config = OpenStruct.new
 
   class Jobfile
+
     def self.evaluate filename = self.find
-      builder = new
+      builder = new(filename)
       builder.instance_eval(File.read(filename), filename, 1)
     end
 
@@ -16,7 +17,13 @@ module JobCo
       self.find File::expand_path(File::join(dir, ".."))
     end
 
-    def initialize
+    def self.relative_path *path
+      File::join(File::dirname(@@filename), *path)
+    end
+
+    def initialize filename
+      abort "what is #{@@filename} anyway ? (ONE JOBFILE AT A TIME PLZ)" if defined?(@@filename)
+      @@filename = filename
       Config.job_modules = []
       Config.job_load_path = []
     end
@@ -30,6 +37,14 @@ module JobCo
       Config.job_modules << modul
     end
 
+    # @jobco_readonly is used so that configuration for env
+    # different than current env is still interpreted and checked for errors
+    # the following should be caught, in fact, in development environment.
+    #
+    # ex:
+    # env :production do
+    #   XXX_SYNTAX_ERROR_XXX
+    # end
     def jobconf k, v
       return if @jobco_readonly
       Config.send("#{k}=", v)

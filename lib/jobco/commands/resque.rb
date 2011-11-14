@@ -42,6 +42,8 @@ module JobCo
             end
           end
 
+          JobCo::Job::require_rails if JobCo::Config.require_rails == :once
+
           if background?
             abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
             Process.daemon(true)

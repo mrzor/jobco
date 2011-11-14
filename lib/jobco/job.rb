@@ -8,18 +8,69 @@ module JobCo
   # JobCo::Job marshalizes JobCo::Config (an openstruct) to redis at enqueue
   # and (lazily) loads it back into @jobco at runtime
   class Job < ::Resque::JobWithStatus
-    def self.create options = {}
-      self.enqueue(self, options)
+    attr_reader :jobconf
+
+    def self.create *args
+      self.enqueue(self, *args)
     end
 
-    def self.enqueue(klass, options = {})
+    # Overrides Resque::JobWithStatus
+    def self.perform(uuid = nil, *args)
+      uuid ||= Resque::Status.generate_uuid
+      instance = new(uuid)
+
+      jobconf = instance.jobconf
+      if jobconf.require_rails == :each_time
+        instance.tick "Loading rails..."
+        require_rails
+      end
+
+      instance.tick "Perform job #{uuid}"
+      instance.safe_perform! *args
+      instance
+    end
+
+    # overrides of Resque::JobWithStatus
+    def self.enqueue(klass, *args)
       require "base64"
 
-      uuid = ::Resque::Status.create :options => options
+      Config.uuid = ::Resque::Status.create
       rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-      rn.hset("conf", uuid, Base64.encode64(Marshal.dump(JobCo::Config)))
-      ::Resque.enqueue(klass, uuid, options)
-      uuid
+
+      rn.hset("conf", Config.uuid, Base64.encode64(Marshal.dump(JobCo::Config)))
+      ::Resque.enqueue(klass, Config.uuid, *args)
+      Config.uuid
+    end
+
+    # overrides Resque::JobWithStatus
+    def safe_perform! *args
+      set_status({'status' => 'working'})
+      perform *args
+      completed unless status && status.completed?
+      on_success if respond_to?(:on_success)
+    rescue Killed
+      logger.info "Job #{self} Killed at #{Time.now}"
+      Resque::Status.killed(uuid)
+      on_killed if respond_to?(:on_killed)
+    rescue => e
+      logger.error e
+      failed("The task failed because of an error: #{e}")
+      if respond_to?(:on_failure)
+        on_failure(e)
+      else
+        raise e
+      end
+    end
+
+    # require Rails 3, fool.
+    def self.require_rails
+      highway_to_rails = Jobfile.relative_path("config", "environment.rb")
+      unless File.exists?(highway_to_rails)
+        fail "where is rails ? I thought it was '#{highway_to_rails}'"
+      end
+
+      require highway_to_rails
+      Rails.application.eager_load!
     end
 
     def jobconf
