@@ -5,6 +5,7 @@ module JobCo
 
   class Jobfile
     def self.evaluate filename = self.find
+      fail "jobfile not found" unless filename and File.exists?(filename)
       builder = new
       builder.instance_eval(File.read(filename), filename, 1)
     end
