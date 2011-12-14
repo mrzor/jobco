@@ -2,21 +2,31 @@
 
 # This is a sample Jobfile
 
-# This will make JobCo sample jobs known to jobco
-# You will more likely use MyCompany::Jobs
-job_module JobCo::Jobs
+# Where are your jobs ?
+# Use job_load_path and job_module to tell JobCo.
+#
+# job_load_path "/fantasy/jobs"
+# job_module Fantasy::Jobs
+#
+# This assumes your code resides in the /fantasy/jobs directory
+# and that it is contained in *.rb files.
+#
+# More realistically, this could look like:
+#
+# job_load_path File::join(File::dirname(__FILE__), "jobs")
+
+# We're cheating because we know you have jobco !
+# no job_load_path here
+require "jobco/samples"
+job_module JobCo::SampleJobs
 
 # JobCo allows you to send configuration to your jobs, so that
 # you can handle parameters like credentials without messing with
 # actual job parameters.
 
-# It also keeps the burden of setting up job configuration at enqueue
+# It also eases the burden of setting up job configuration at enqueue
 # time, removing the dependency between the worker instance and configuration
-# data. If configuration changes, workers don't have to be updated,
-# making deployment less error-prone.
-
-# To access configuration, use JobCo::Config likewise:
-# JobCo::Config.key_a
+# data. If configuration changes, workers don't have to be updated immediately.
 
 env :development do
   jobconf "key_a", "value"
@@ -24,8 +34,13 @@ env :development do
     subkey_a: "w00t",
     subkey_b: 1337
   }
+
+  # jobconf :require_rails, :each_time
 end
 
-env(:prod) do
+env :production do
+  # otherwise, you want to set serious values.
   jobconf "very serious", "value"
+
+  # jobconf :require_rails, :once
 end
