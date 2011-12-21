@@ -36,11 +36,11 @@ EODOC
 
         def execute
           if compat?
-            Resque.remove_worker(id)
+            ::Resque.remove_worker(id)
             puts "** removed #{id}"
           else
-            pid_file ||= "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
-            abort "PID file #{pid_file} not found" unless File.exists?(pid_file)
+            pid_file = pidfile || "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
+            abort "PID file #{pidf} not found" unless File.exists?(pid_file)
             pid = File.read(pid_file).to_i
             `kill -QUIT #{pid} 2>&1`
           end
@@ -97,6 +97,7 @@ EODOC
           pid_file ||= "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
 
           # create pid directory if necessary
+          pid_file = pidfile || "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
           pid_dir = File.dirname(pid_file)
           Dir.mkdir(pid_dir) unless Dir.exists?(pid_dir)
 
