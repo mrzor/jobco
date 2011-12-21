@@ -1,60 +1,21 @@
 require 'resque'
 require 'clamp'
 
+Dir[_jobco_path("commands", "resque", "*rb")].each { |f| require f }
+
 module JobCo
+  # This module commands runnable as `jobco resque _____` in the CLI
+  #
+  # The code is based on the original Resque rake tasks, but have been
+  # bundled inside a clamp package with no direct code reuse (ie, the code
+  # is partially duplicated).
+  #
+  # Efforts have been made to get the whole package monit compatible,
+  # so that you don't have to write shellscripts and what not to wrap it around.
+  #
   module Commands
     class Resque < Clamp::Command
-      subcommand "run_worker", "forks a worker in the background" do
-        option(["-q", "--quiet"], :flag, "Be quiet", :default => false)
-        option(["-v", "--verbose"], :flag, "Be verbose", :default => false)
-        option(["-i", "--interval"],
-               "INTERVAL", "Interval at which ",
-               :default => (ENV['INTERVAL'] || 5).to_i)
-        option(["-b", "--background"], :flag,
-               "XXX BACKGROUND DOC",
-               :default => ENV['BACKGROUND'] || false)
-        option(["-Q", "--queues"],
-               "QUEUES", "Job queue(s) the worker is serving.",
-               :default => (ENV['QUEUES'] || ENV['QUEUE'] || "*"))
-        option(["-p", "--pidfile"],
-               "PIDFILE", "XXX PIDFILE DOC",
-               :default => ENV['PIDFILE'])
-        option(["-k", "--kill"], :flag,
-               "Use `resque` to kill any running worker",
-               :default => false)
-
-        def queues= v;  @queues = v.to_s.split(','); end
-
-        def execute
-          require 'resque/worker'
-
-          require 'jobco/jobs'
-          JobCo::Jobs::load_available_jobs
-
-          if kill?
-            ids = `resque list`
-            if ids != "None\n"
-              ids.split("\n").map { |x| x.split(" ").first }.each do |id|
-                STDOUT << "resque kill #{id}"
-                `resque kill #{id}`
-                STDOUT << "  ok (#{$?}).\n"
-              end
-            end
-          end
-
-          JobCo::Job::require_rails if JobCo::Config.require_rails == :once
-
-          if background?
-            abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
-            Process.daemon(true)
-          end
-
-          worker = ::Resque::Worker.new(queues)
-          worker.verbose = !quiet?
-          worker.very_verbose = verbose?
-          worker.work(interval)
-        end
-      end
+      subcommand "worker", "forks a worker in the background", ResqueWorker
 
       subcommand "run_scheduler", "forks a resque::scheduler process" do
         option(["-b", "--background"],
