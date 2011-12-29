@@ -1,4 +1,8 @@
 module JobCo
+  # JobCo::Jobs API is what you use to write administration tools or automation
+  # about your jobs.
+  #
+  # See those functions in use in the jobco/commands/* files.
   class Jobs
     def self.select_job_class pattern
       c = self.available_jobs.select { |j| j.to_s.downcase.include?(pattern.downcase) }
@@ -36,5 +40,23 @@ module JobCo
       self.available_jobs
       nil
     end
+
+    # JobCo specific
+    # Returns last status entry for each job class
+    # XXX: this belongs to JobCo::Jobs package
+    def self.status
+      Jobs.available_jobs.inject([]) do |memo, job_class|
+        last_uuid = JobCo::redis.hget("last_class_uuid", job_class)
+        last_status = ::Resque::Status.get(last_uuid)
+
+        memo << {
+          klass: job_class,
+          status: last_status,
+          queue: 'xxx',
+          schedule: ''
+        }
+      end
+    end
+
   end
 end

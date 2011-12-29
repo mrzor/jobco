@@ -1,13 +1,14 @@
 require "resque"
 require "resque/job_with_status"
+require "base64"
 
 module JobCo
-  # = This is what you inherit from
+  # = JobCo::Job is what you inherit from
   #
   # Forced inheritance : it comes from JobWithStatus.
   # In another dimension, we would have enjoyed fancy automagical "include JobCo::Fu".
   #
-  # = Exemple
+  # = Example
   #
   # XXX see lib/jobco/jobs/status_sample.rb
   #
@@ -15,14 +16,9 @@ module JobCo
   #
   # == Configuration
   #
-  # JobCo::Job marshalizes JobCo::Config (an openstruct) to redis at enqueue
-  # and (lazily) loads it back into @jobco at runtime. Use this at will to reuse
+  # JobCo::Job marshals JobCo::Config (an openstruct) to redis at enqueue
+  # and loads it back into @jobco at perform time. Use this at will to reuse
   # configuration defined in your Jobfile.
-  #
-  # == Modified to_json
-  #
-  # Assuming you defined `class YourJob < JobCo::Job`,
-  # `YourJob.to_json` is equivalent to `YourJob.to_s.to_json`
   #
   # == require_rails helper
   #
@@ -49,13 +45,16 @@ module JobCo
     end
 
     # Call this liberally in your perform() code to retrieve global
-    # (but still environment dependant) configuration
+    # (but still environment dependant) configuration.
+    #
+    # Job configuration is saved each time a job is enqueued, and never
+    # changed once a UUID have been set. This means that configuration
+    # changes only apply to jobs enqueued/scheduled after that.
     def jobconf
       return @jobconf if @jobconf
 
       require "base64"
-      rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-      raw_conf = rn.hget("conf", @uuid)
+      raw_conf = JobCo::redis.hget("conf", @uuid)
 
       unless raw_conf
         fail "JobCo internal: Could not load configuration for uuid '#{@uuid}'. Report this."
@@ -63,7 +62,7 @@ module JobCo
       end
 
       @jobconf = Marshal.load(Base64.decode64(raw_conf))
-      rn.hdel("conf", @uuid)
+      JobCo::redis.hdel("conf", @uuid)
       @jobconf
     end
 
@@ -80,13 +79,7 @@ module JobCo
     def self.perform(uuid = nil, *args)
       uuid ||= Resque::Status.generate_uuid
       instance = new(uuid)
-
-      jobconf = instance.jobconf
-      if jobconf and jobconf.require_rails == :each_time
-        instance.tick "Loading rails..."
-        require_rails
-      end
-
+      instance.send(:jobco_boot)
       instance.tick "Perform job #{uuid}"
       instance.safe_perform! *args
       instance
@@ -95,12 +88,9 @@ module JobCo
     # A JobCo-using developer would not call this directly.
     # Overrides Resque::JobWithStatus
     def self.enqueue(klass, *args)
-      require "base64"
-
       Config.uuid = ::Resque::Status.create
-      rn = Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
-
-      rn.hset("conf", Config.uuid, Base64.encode64(Marshal.dump(JobCo::Config)))
+      packed_config = Base64.encode64(Marshal.dump(JobCo::Config))
+      JobCo::redis.hset("conf", Config.uuid, packed_config)
       ::Resque.enqueue(klass, Config.uuid, *args)
       Config.uuid
     end
@@ -128,11 +118,23 @@ module JobCo
 
     # A JobCo-using developer would not call this directly.
     #
-    # The following is required to have Resque::Scheduler interoperate
-    # properly with Resque::JobWithStatus
+    # Job::scheduled is a Resque::Scheduler API that allows
+    # interoperation with Resque::JobWithStatus
     def self.scheduled(queue, klass, *args)
       @queue = queue
       self.create(*args)
+    end
+
+    private
+
+    def jobco_boot
+      JobCo::redis.hset("last_class_uuid", self.class, uuid)
+
+      conf = jobconf()
+      if conf and conf.require_rails == :each_time
+        tick "Loading rails..."
+        Job::require_rails
+      end
     end
   end
 end
