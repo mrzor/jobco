@@ -6,43 +6,14 @@ Dir[_jobco_path("commands", "resque", "*rb")].each { |f| require f }
 module JobCo
   # This module commands runnable as `jobco resque _____` in the CLI
   #
-  # The code is based on the original Resque rake tasks, but have been
-  # bundled inside a clamp package with no direct code reuse (ie, the code
-  # is partially duplicated).
   #
   # Efforts have been made to get the whole package monit compatible,
   # so that you don't have to write shellscripts and what not to wrap it around.
   #
   module Commands
     class Resque < Clamp::Command
-      subcommand "worker", "forks a worker in the background", ResqueWorker
-
-      subcommand "run_scheduler", "forks a resque::scheduler process" do
-        option(["-b", "--background"],
-              :flag, "XXX BACKGROUND DOC",
-              :default => ENV['BACKGROUND'] || false)
-        option(["-d", "--dynamic-schedule"],
-              :flag, "Allow schedule manipulation at runtime",
-              :default => ENV['DYNAMIC_SCHEDULE'] || true)
-        option(["-q", "--quiet"], :flag, "Be quiet", :default => false)
-
-        def execute
-          require 'resque_scheduler'
-          require 'resque/scheduler'
-
-          require 'jobco/jobs'
-          JobCo::Jobs::load_available_jobs
-
-          if background?
-            abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
-            Process.daemon(true)
-          end
-
-          ::Resque::Scheduler.dynamic = dynamic_schedule?
-          ::Resque::Scheduler.verbose = !quiet?
-          ::Resque::Scheduler.run
-        end
-      end
+      subcommand "worker", "worker process handling", ResqueWorker
+      subcommand "scheduler", "scheduler process handling", ResqueScheduler
 
       subcommand "run_resque_web", "forks a resque::scheduler process" do
         def execute

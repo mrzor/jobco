@@ -1,20 +1,11 @@
 module JobCo
   module Commands
+    # The code is based on the original Resque rake tasks, but have been
+    # bundled inside a clamp package with no direct code reuse (ie, the code
+    # is partially duplicated).
+    # Some code was also borrowed from the Resque `resque` CLI code.
     class ResqueWorker < Clamp::Command
       self.description = "Manage worker processes"
-
-      subcommand "list", "list workers known to Resque" do
-        def execute
-          # this is a duplicated from bin/resque
-          if ::Resque.workers.any?
-            ::Resque.workers.each do |worker|
-              puts "#{worker} (#{worker.state})"
-            end
-          else
-            puts "None"
-          end
-        end
-      end
 
       subcommand "stop", "guess what?" do
         self.description = <<EODOC
@@ -30,6 +21,7 @@ EODOC
         option(["-c", "--compat"],
                :flag, "`resque` compatibility mode: ID must be resque-style worker id (host:pid:queues)",
                :default => false)
+        # XXX: handle --all to stop all workers
 
         parameter "[ID]", "unique identifier for the worker",
                   :default => '1', :attribute_name => :id
@@ -90,28 +82,36 @@ EODOC
             Process.daemon(true)
           end
 
-          worker = ::Resque::Worker.new(queues)
-          worker.verbose = !quiet?
-          worker.very_verbose = verbose?
-
-          pid_file ||= "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
-
           # create pid directory if necessary
           pid_file = pidfile || "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
           pid_dir = File.dirname(pid_file)
           Dir.mkdir(pid_dir) unless Dir.exists?(pid_dir)
 
           # write pid file if not exists
-          File.open(pid_file, 'w') { |f| f << worker.pid }
-
-          # XXX: at exit, remove pid_file
+          File.open(pid_file, 'w') { |f| f << Process.pid }
 
           # Finally, work.
+          worker = ::Resque::Worker.new(queues)
+          worker.verbose = !quiet?
+          worker.very_verbose = verbose?
           worker.work(interval)
 
           # If we shall even reach this, we shall remove the PID file.
           # Don't SIGKILL me you insensitive bastard.
           File.unlink(pid_file) if File.exists?(pid_file)
+        end
+      end
+
+      subcommand "list", "list workers known to Resque" do
+        def execute
+          # this is a duplicated from bin/resque
+          if ::Resque.workers.any?
+            ::Resque.workers.each do |worker|
+              puts "#{worker} (#{worker.state})"
+            end
+          else
+            puts "None"
+          end
         end
       end
     end

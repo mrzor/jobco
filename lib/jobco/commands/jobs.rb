@@ -12,6 +12,14 @@ module JobCo
         end
       end
 
+      subcommand ["s", "status"], "XXX job statuses" do
+        def execute
+          # XXX: moar pretty print !
+          puts "Last status:"
+          puts JobCo::Jobs::status.inspect
+        end
+      end
+
       subcommand ["q", "enqueue"], "manually enqueue a job" do
         self.description = "Manual enqueuing (one shot). Does not support parameters."
         option(["-e", "--every"], "PERIOD",
