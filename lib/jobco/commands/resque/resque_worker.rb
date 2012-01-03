@@ -70,8 +70,8 @@ EODOC
         def execute
           require 'resque/worker'
 
-          require 'jobco/jobs'
-          JobCo::Jobs::load_available_jobs
+          require 'jobco'
+          JobCo::boot
 
           # `once` means before forking worker sub processes
           # xxx: answer question 'can this be done after backgrounding?'

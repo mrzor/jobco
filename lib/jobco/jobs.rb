@@ -3,6 +3,8 @@ module JobCo
   # about your jobs.
   #
   # See those functions in use in the jobco/commands/* files.
+  #
+  # XXX move this in JobCo::API module
   class Jobs
     def self.select_job_class pattern
       c = self.available_jobs.select { |j| j.to_s.downcase.include?(pattern.downcase) }
@@ -16,8 +18,6 @@ module JobCo
 
     def self.available_jobs
       return @@available_jobs if defined?(@@available_jobs)
-      require "jobco/jobfile"
-      Jobfile::evaluate
       jobs = []
 
       # 1) require any rb file in load path

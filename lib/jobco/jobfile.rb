@@ -5,7 +5,7 @@ module JobCo
 
   class Jobfile
 
-    def self.evaluate filename = self.find
+    def self.evaluate filename
       fail "jobfile not found" unless filename and File.exists?(filename)
       builder = new(filename)
       builder.instance_eval(File.read(filename), filename, 1)
@@ -22,8 +22,10 @@ module JobCo
       File::join(File::dirname(@@filename), *path)
     end
 
+    # this will happily overwrite any previously loaded Jobfile
+    # there can only be one Jobfile loaded at a time :
+    # weird combination of Jobfiles are unsupported atm.
     def initialize filename
-      abort "what is #{@@filename} anyway ? (ONE JOBFILE AT A TIME PLZ)" if defined?(@@filename)
       @@filename = filename
       Config.job_modules = []
       Config.job_load_path = []

@@ -32,8 +32,8 @@ module JobCo
           require 'resque_scheduler'
           require 'resque/scheduler'
 
-          require 'jobco/jobs'
-          JobCo::Jobs::load_available_jobs
+          require 'jobco'
+          JobCo::boot
 
           if background?
             abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')

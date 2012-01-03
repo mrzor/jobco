@@ -14,15 +14,7 @@ module JobCo
     class Resque < Clamp::Command
       subcommand "worker", "worker process handling", ResqueWorker
       subcommand "scheduler", "scheduler process handling", ResqueScheduler
-
-      subcommand "run_resque_web", "forks a resque::scheduler process" do
-        def execute
-          require 'vegas'
-          require "resque/server"
-          br = lambda { |v| load _jobco_path("resque_web_conf.rb") }
-          Vegas::Runner.new(::Resque::Server, 'resque-web', { :before_run => br })
-        end
-      end
+      subcommand "web", "resque web process handling", ResqueWeb
 
       subcommand "ps", "list running resque processes (using ps)" do
         def execute
