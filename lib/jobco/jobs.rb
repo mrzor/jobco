@@ -43,7 +43,6 @@ module JobCo
 
     # JobCo specific
     # Returns last status entry for each job class
-    # XXX: this belongs to JobCo::Jobs package
     def self.status
       Jobs.available_jobs.inject([]) do |memo, job_class|
         last_uuid = JobCo::redis.hget("last_class_uuid", job_class)
