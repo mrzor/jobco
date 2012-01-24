@@ -23,7 +23,13 @@ module JobCo
   #
   module API
     # Regular Resque style enqueue
+    #
     # This will fire up the job exactly once, ASAP
+    # === Examples
+    #
+    #   # From your controllers or models
+    #   JobCo.enqueue(Jobs::CrushImages, image.id)
+    #   JobCo.enqueue(Jobs::WelcomeEmail, user.id)
     def enqueue job_class, *args
       job_class.create(*args)
     end
