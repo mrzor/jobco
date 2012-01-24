@@ -7,6 +7,11 @@ module JobCo
 
       subcommand ["ls", "list"], "available jobs" do
         def execute
+          STDOUT << "Loading JobCo ... "
+          JobCo::boot
+          JobCo::Jobs::require_files
+          STDOUT.puts "ok."
+
           puts "Jobs known to JobCo:"
           JobCo::Jobs::available_jobs.each { |x| puts " * #{x}" }
         end

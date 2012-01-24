@@ -3,29 +3,90 @@ require "resque/job_with_status"
 require "base64"
 
 module JobCo
-  # = JobCo::Job is what you inherit from
+  # === Minimal job example
   #
-  # Forced inheritance : it comes from JobWithStatus.
-  # In another dimension, we would have enjoyed fancy automagical "include JobCo::Fu".
+  # Lots can be done with as little code as this :
   #
-  # = Example
+  #    require "jobco/job"
+  #
+  #    class MyJob < JobCo::Job
+  #      @queue = 'my_queue'
+  #
+  #      def perform
+  #        # anything goes here ...
+  #      end
+  #    end
+  #
+  # === Job code : arguments ?
+  #
+  # Let's designate `perform with arguments` as a `job method`,
+  # and `perform without arguments` as a `job procedure`.
+  #
+  # The minimal job example above is a `job procedure`. A `job method` might
+  # look like the following:
+  #
+  #    require "jobco/job"
+  #
+  #    class MyParametrizedJob < JobCo::Job
+  #      def perform arg_a, arg_b
+  #        # anything goes here ...
+  #      end
+  #    end
+  #
+  # Keep the following in mind using `job methods` :
+  #
+  # * Worker procedures can be scheduled using `jobco jobs enqueue` and similar
+  #   tools.
+  #
+  # * Worker methods can only be programatically scheduling using the JobCo::API
+  #   routines.
+  #
+  # * It is your responsibility to enqueue a worker method with the correct number
+  #   of arguments. If you fail to do so, the worker process will fail to execute
+  #   your job.
+  #
+  # * The arguments will be serialized to JSON format. When passing objects as arguments
+  #   to JobCo::enqueue (and its siblings), be wary of what #to_json will yield for your
+  #   arguments.
+  #
+  # * If all your arguments are static in nature, see `Configured jobs` parts below,
+  #   as it can be helpful in order to convert a `job method` into a 
+  #   `configured job procedure`.
+  #
+  # === Fancier jobs - with status!
+  #
+  # Inside your perform code, you might want to use the following :
+  #
+  # * Live status report : #tick , #at
+  # * End status report : #completed , #failed
   #
   # XXX see lib/jobco/jobs/status_sample.rb
   #
-  # = Features and side effects
+  # === Configured jobs
   #
-  # == Configuration
+  # At enqueue time, JobCo will store the JobCo::Config object in redis,
+  # that will be used once for that queued job and deleted afterwards.
   #
-  # JobCo::Job marshals JobCo::Config (an openstruct) to redis at enqueue
-  # and loads it back into @jobco at perform time. Use this at will to reuse
-  # configuration defined in your Jobfile.
+  # Let's assume your Jobfile contains the following:
   #
-  # == require_rails helper
+  #    job_conf "webservice_api_key" "XXX"
+  #    job_conf "webservice_api_token" "42" * 42
   #
-
+  # Then, it is safe to query the configured values from your jobs like so:
+  #
+  #    def perform
+  #      # ...
+  #
+  #      key = jobconf.webservice_api_key
+  #      tok = jobconf.webservice_api_token
+  #
+  #      o = webservice_call(key, tok, my_call_parameters)
+  #      mess_with_o(o)
+  #
+  #      # ...
+  #    end
+  #
   class Job < ::Resque::JobWithStatus
-    attr_reader :jobconf
-
     # Call this manually in your perform() code if you operate a resque deployment
     # where some workers load rails and some don't.
     #
@@ -70,13 +131,13 @@ module JobCo
     # For clearer semantics, prefer `JobCo::enqueue(YourJob)`.
     #
     # Calling create will result in job enqueing.
-    def self.create *args
+    def self.create *args # :nodoc:
       self.enqueue(self, *args)
     end
 
     # A JobCo-using developer would not call this directly.
     # Overrides Resque::JobWithStatus
-    def self.perform(uuid = nil, *args)
+    def self.perform(uuid = nil, *args)  # :nodoc:
       uuid ||= Resque::Status.generate_uuid
       instance = new(uuid)
       instance.send(:jobco_boot)
@@ -87,7 +148,7 @@ module JobCo
 
     # A JobCo-using developer would not call this directly.
     # Overrides Resque::JobWithStatus
-    def self.enqueue(klass, *args)
+    def self.enqueue(klass, *args) # :nodoc:
       Config.uuid = ::Resque::Status.create
       packed_config = Base64.encode64(Marshal.dump(JobCo::Config))
       JobCo::redis.hset("conf", Config.uuid, packed_config)
@@ -97,7 +158,7 @@ module JobCo
 
     # A JobCo-using developer would not call this directly.
     # Overrides Resque::JobWithStatus
-    def safe_perform! *args
+    def safe_perform! *args # :nodoc:
       set_status({'status' => 'working'})
       perform *args
       completed unless status && status.completed?
@@ -120,14 +181,19 @@ module JobCo
     #
     # Job::scheduled is a Resque::Scheduler API that allows
     # interoperation with Resque::JobWithStatus
-    def self.scheduled(queue, klass, *args)
+    def self.scheduled(queue, klass, *args) # :nodoc:
       @queue = queue
       self.create(*args)
     end
 
+    # This is called when someone subclasses JobCo::Job
+    def self.inherited subclass # :nodoc:
+      JobCo::Jobs::register_available_job(subclass)
+    end
+
     private
 
-    def jobco_boot
+    def jobco_boot # :nodoc:
       JobCo::redis.hset("last_class_uuid", self.class, uuid)
 
       conf = jobconf()

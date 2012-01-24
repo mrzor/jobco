@@ -1,8 +1,7 @@
 require "ostruct"
+require "jobco/config"
 
 module JobCo
-  Config = OpenStruct.new
-
   # = Jobfile basics
   #
   # XXX
@@ -47,17 +46,12 @@ module JobCo
     # weird combination of Jobfiles are unsupported atm.
     def initialize filename
       @@filename = filename
-      Config.job_modules = []
       Config.job_load_path = []
     end
 
     def job_load_path dir
       Config.job_load_path << dir
       Dir[File::join(dir, "*.rb")].each { |f| require f }
-    end
-
-    def job_module modul
-      Config.job_modules << modul
     end
 
     # @jobco_readonly is used so that configuration for env
