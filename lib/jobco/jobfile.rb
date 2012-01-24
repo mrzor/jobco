@@ -3,6 +3,26 @@ require "ostruct"
 module JobCo
   Config = OpenStruct.new
 
+  # = Jobfile basics
+  #
+  # XXX
+  # see sample
+  #
+  # = Job configuration
+  # When it changed, you might want to reload your scheduler or rails app.
+  #
+  # = jobconf[] special keys
+  #
+  # `:require_rails` can be `:once` (worker spawner will load rails, then fork workers with rails loaded) or `:each_time` (each forked process will load rails independantly, useful in development)
+  #
+  # `:status_ttl` : Time (in seconds) during which job status are kept in redis. Nil for no expiry.
+  #
+  # = Jobfile class
+  #
+  # Jobfile class is of internal use to JobCo.
+  #
+  # While using JobCo as a library, you could mess with it at your own risk,
+  # but it is not recommanded.
   class Jobfile
 
     def self.evaluate filename
