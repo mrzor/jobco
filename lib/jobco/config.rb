@@ -1,4 +1,3 @@
 module JobCo
-  # nice and easy
-  Config = OpenStruct.new
+  Config = OpenStruct.new # :nodoc:
 end

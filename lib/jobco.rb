@@ -1,22 +1,56 @@
-# XXX: instance_eval this when required, like a true hero.
-class Redis
-  class Namespace
+class Redis # :nodoc:
+  # FIXME:  instance_eval this when required, like a true hero.
+  class Namespace # :nodoc:
     attr_reader :redis
   end
 end
 
 # XXX: move this where required, afaik in the jobfile surrounding logic.
-def _jobco_path *x
+def _jobco_path *x # :nodoc:
   File::join(File::dirname(__FILE__), "jobco", *x)
 end
 
-# This is what belongs in this file, and it's not much.
+# JobCo is a Resque distribution.
+#
+# It wraps Resque, alongside the +JobWithStatus+ and +Scheduler+ plugins,
+# into one easy to use package.
+#
+# === What does this mean ?
+#
+# For your job running projects, this translates to :
+#
+# * A +Jobfile+, generally project-wide, to help you define and configure
+#   your jobs in a single file.
+#
+# * The +jobco+ command line tool:
+#   * Wraps Resque process management (see <tt>jobco resque --help</tt> subcommands)
+#   * Allows trivial job control (see <tt>jobco jobs --help</tt> subcommands)
+#
+# * The <tt>JobCo::*</tt> Ruby library, that provide useful primitives for writing and
+#   controlling jobs.
+#
+#
+# === What do I get - compared to rolling out my own stack ?
+#
+# Several things !
+#
+# * Sensible development/production defaults
+# * Unified, (somewhat) documented class to inherit from : JobCo::Job
+# * Job introspection routines (JobCo::Jobs) - Useful for custom 'job control' tools
+# * Coherent job manipulation routines (JobCo::API)
+
 module JobCo
   require "jobco/api"
   require "jobco/jobs"
+  require "jobco/jobfile"
   self.extend(JobCo::API)
 
-  require "jobco/jobfile"
+  # You want to call this once in your application.
+  # It's perfectly fine for a jobco Rails initializer.
+  #
+  # If you would like JobCo to load code located in your
+  # <tt>job_load_path</tt> (see Jobfile), see JobCo::Jobs::require_files
+  # 
   def self.boot filename = Jobfile::find
     Jobfile::evaluate filename # populate JobCo::Config
 
@@ -33,11 +67,9 @@ module JobCo
     else
       fail "Jobfile: `jobconf 'resque_redis'` is mandatory."
     end
-
-    # do not load available jobs automatically
   end
 
-  def self.redis
+  def self.redis # :nodoc:
     @@redis ||= Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
   end
 end

@@ -1,44 +1,45 @@
 module JobCo
-  # JobCo::Jobs API is what you use to write administration tools or automation
-  # about your jobs.
   #
-  # See those functions in use in the jobco/commands/* files.
+  # === What is this ?
   #
-  # XXX move this in JobCo::API module
+  # The <tt>JobCo::Jobs</tt> package contains routines you can use to write
+  # administration tools or automation about your jobs.
+  #
+  # The <tt>jobco jobs</tt> tool implementation might be useful as an example.
+  #
   class Jobs
-    def self.select_job_class pattern
-      c = self.available_jobs.select { |j| j.to_s.downcase.include?(pattern.downcase) }
-      if c.size > 1
-        fail "Different jobs match `#{pattern}': #{c.join(', ')}"
-      elsif c.empty?
-        fail "No jobs are matching `#{pattern}'. Use `jobs ls' command."
-      end
-      c.first
+    @@available_jobs = []
+
+    class NoSuchJob < Exception
     end
 
-    def self.available_jobs
-      return @@available_jobs if defined?(@@available_jobs)
-      jobs = []
-
-      # 1) require any rb file in load path
+    # load ruby code stored in job load pathes
+    # see the +job_load_path+ directive in Jobfile.
+    def self.require_files
       Config.job_load_path.each do |path|
         Dir[File::join(path, "*.rb")].each { |f| require f }
-      end
-
-      # 2) explore job package for jobco::job inheritors
-      Config.job_modules.each do |mod|
-        fail "#{mod} ain't a module" unless mod.is_a?(Module)
-        jobs = jobs + mod.constants.map { |c| mod.const_get(c) }.select do |c|
-          c.is_a?(Class) && c.ancestors.include?(::JobCo::Job)
-        end
-      end
-
-      @@available_jobs = jobs
+      end if Config.job_load_path
     end
 
-    def self.load_available_jobs
-      self.available_jobs
-      nil
+    # returns an array of Class objects, each one being a JobCo::Job descendant.
+    def self.available_jobs
+      @@available_jobs.dup.freeze
+    end
+
+    # called by JobCo::Job::inherited()
+    def self.register_available_job job_class # :nodoc:
+      fail "bad job class: #{job_class}" unless job_class.ancestors.include?(JobCo::Job)
+      @@available_jobs << job_class unless @@available_jobs.include?(job_class)
+    end
+
+    def self.select_job pattern
+      c = available_jobs.select { |j| j.to_s.downcase.include?(pattern.downcase) }
+      if c.size > 1
+        raise NoSuchJob.new("Several jobs match `#{pattern}': #{c.join(', ')}")
+      elsif c.empty?
+        raise NoSuchJob.new("No jobs are matching `#{pattern}'.")
+      end
+      c.first
     end
 
     # JobCo specific

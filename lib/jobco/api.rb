@@ -1,14 +1,26 @@
 module JobCo
-  # = JobCo API =
+  # JobCo::API regroup functions that programatically trigger jobs.
+  # See JobCo::Jobs for functions that provide information about jobs.
   #
-  # API is a big word that more or less says the following
-  # is what you would like to use while writing application code.
+  # === Immediate enqueue
   #
-  # Application code means your Rack/Sinatra/Rails application,
-  # or a rake task, or a clamp/thor CLI tool, or what have you.
+  # The simplest form of programatic job control is _enqueuing_, a fundamental
+  # Resque operation. See #enqueue and (DOC FIXME: link to Resque doc)
   #
-  # API functions, such as , are mixed in the JobCo module,
-  # meaning you could call `JobCo::API::enqueue` as `JobCo::enqueue`.
+  # === Postponed enqueue
+  #
+  # Resque Scheduler, an extension bundled with JobCo, expands the scope
+  # to _deferred_ and _scheduled_ jobs. Deferred or scheduled jobs are
+  # queued at a later point in time - that you specify.
+  #
+  # === Syntax
+  #
+  # Note that all JobCo::API functions are mixed in the JobCo module.
+  # The following lines are therefore equivalent:
+  #
+  #   JobCo::API::enqueue(MyJobs::Demo)
+  #   JobCo.enqueue(MyJobs::Demo) # one and the same
+  #
   module API
     # Regular Resque style enqueue
     # This will fire up the job exactly once, ASAP
@@ -51,8 +63,9 @@ module JobCo
       schedule_opts["schedule_name"]
     end
 
-    # non functional JobCo helper
+    # removes a schedule entry from the schedule table
     def unschedule schedule_name
+      require 'resque_scheduler'
       ::Resque::remove_schedule(schedule_name)
     end
   end
