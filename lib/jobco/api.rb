@@ -30,16 +30,25 @@ module JobCo
     def enqueue_in
     end
 
+    # XXX: dequeue?
+
     # resque-scheduler dynamicly scheduled job
+    #
+    # recognized options keys:
+    # `:args => [arg1, arg2]` arguments for your perform() call if any
+    # `:description => 'blabla'` defaults to time of call to this method
+    # `:schedule_name => 'unique_schedule_name' useful if you need to schedule
+    # same job several times
+    #
     # XXX: more documentation needed
-    def schedule job_class, options = {}
+    def schedule job_class, options = {}, *args
       require 'resque_scheduler'
       schedule_opts = {
         "custom_job_class" => job_class.to_s,
         "queue" => ::Resque::queue_from_class(job_class),
-        "args" => [],
+        "args" => [], # XXX FIXME || *args
         "description" => "Jobco scheduled at #{Time.now.strftime("%F %T")}",
-        "schedule_name" => "schedule_#{job_class}"
+        "schedule_name" => "schedule_#{job_class}",
       }.merge(options)
 
       # no defaults for those. pick one.
