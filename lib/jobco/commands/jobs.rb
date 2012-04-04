@@ -3,16 +3,12 @@ require "jobco/jobs"
 module JobCo
   module Commands
     class Jobs < Clamp::Command
-      option ["-j", "--jobfile"], "JOBFILE", "Use a specific Jobfile (default: looks up for Jobfile in current dir or any parent)"
+      option ["-j", "--jobfile"], "JOBFILE", "Use a specific Jobfile (default: looks up for Jobfile in current dir or any parent)", :default => JobCo::Jobfile.find
 
       subcommand ["ls", "list"], "available jobs" do
         def execute
-          STDOUT << "Loading JobCo ... "
-          JobCo::boot
-          JobCo::Jobs::require_files
-          STDOUT.puts "ok."
-
           puts "Jobs known to JobCo:"
+          JobCo::boot_and_load(jobfile)
           JobCo::Jobs::available_jobs.each { |x| puts " * #{x}" }
         end
       end
@@ -21,6 +17,7 @@ module JobCo
         def execute
           # XXX: moar pretty print !
           puts "Last status:"
+          JobCo::boot_and_load(jobfile)
           puts JobCo::Jobs::status.inspect
         end
       end
@@ -33,16 +30,14 @@ module JobCo
 
         parameter "NAME", "name of the job class to run"
         def execute
-          job_class = JobCo::Jobs::select_job_class(name)
-          if job_class.ancestors.include?(::Resque::JobWithStatus)
-            ::Resque::Status.expire_in = 7 * (72 * 60 * 60) # A week, in seconds
-            job_id = job_class.create
-            puts "Queue JobWithStatus ID=#{job_id}"
-          elsif true # FIXME: check that class has a perform method
-            ::Resque.enqueue(c)
-          else
-            abort "unsupported class #{job_class} for jobco enqueuing"
-          end
+          JobCo::boot_and_load(jobfile)
+          job_class = JobCo::Jobs::select_job(name)
+
+          # FIXME: jobconf this ...
+          ::Resque::Status.expire_in = 7 * (72 * 60 * 60) # A week, in seconds
+
+          job_id = JobCo::enqueue(job_class)
+          puts "Queued #{job_class}, ID=#{job_id}"
         end
       end
 
@@ -58,7 +53,8 @@ module JobCo
 
         def execute
           require 'resque_scheduler'
-          job_class = JobCo::Jobs::select_job_class(name)
+          JobCo::boot_and_load(jobfile)
+          job_class = JobCo::Jobs::select_job(name)
 
           if schedule_name == "jobco_schedule_classname"
             schedule_name = "jobco_schedule_#{job_class.to_s.downcase}"
