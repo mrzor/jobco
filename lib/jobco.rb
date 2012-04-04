@@ -5,7 +5,7 @@ class Redis # :nodoc:
   end
 end
 
-# XXX: move this where required, afaik in the jobfile surrounding logic.
+# XXX: move this where required, probably in the jobfile surrounding logic.
 def _jobco_path *x # :nodoc:
   File::join(File::dirname(__FILE__), "jobco", *x)
 end
@@ -15,42 +15,29 @@ end
 # It wraps Resque, alongside the +JobWithStatus+ and +Scheduler+ plugins,
 # into one easy to use package.
 #
-# === What does this mean ?
+# Check out the README if you haven't done so already.
 #
-# For your job running projects, this translates to :
+# === What do I code with JobCo ?
 #
-# * A +Jobfile+, generally project-wide, to help you define and configure
-#   your jobs in a single file.
-#
-# * The +jobco+ command line tool:
-#   * Wraps Resque process management (see <tt>jobco resque --help</tt> subcommands)
-#   * Allows trivial job control (see <tt>jobco jobs --help</tt> subcommands)
-#
-# * The <tt>JobCo::*</tt> Ruby library, that provide useful primitives for writing and
-#   controlling jobs.
-#
-#
-# === What do I get - compared to rolling out my own stack ?
-#
-# Several things !
-#
-# * Sensible development/production defaults
-# * Unified, (somewhat) documented class to inherit from : JobCo::Job
-# * Job introspection routines (JobCo::Jobs) - Useful for custom 'job control' tools
-# * Coherent job manipulation routines (JobCo::API)
-
+# * Job definition : inherit from JobCo::Job and implement perform()
+# * Job manipulation : JobCo::API
+# * Job introspection : JobCo::Jobs (Useful if you wish to write your own logic around 'job control' - quite likely, right?)
 module JobCo
   require "jobco/api"
   require "jobco/jobs"
   require "jobco/jobfile"
+  # XXX: require jobco deps here and be done with it
   self.extend(JobCo::API)
 
-  # You want to call this once in your application.
-  # It's perfectly fine for a jobco Rails initializer.
+  # Minimal JobCo initialization routine
+  # It will not require the ruby files holding your job code (see #boot_and_load to do that).
   #
-  # If you would like JobCo to load code located in your
-  # <tt>job_load_path</tt> (see Jobfile), see JobCo::Jobs::require_files
-  # 
+  # It's well suited as a JobCo Rails initializer provided Rails can load your job code.
+  # One easy way for Rails to find your job ruby files is to put then under 'app/jobs'.
+  #
+  # Exemple:
+  #    JobCo::boot # inside config/initializers/jobco.rb
+  #
   def self.boot filename = Jobfile::find
     Jobfile::evaluate filename # populate JobCo::Config
 
@@ -67,6 +54,17 @@ module JobCo
     else
       fail "Jobfile: `jobconf 'resque_redis'` is mandatory."
     end
+  end
+
+  # General purpose JobCo initialization routine.
+  #
+  # Call this once if using JobCo 'bare ruby' style
+  # Remember that job files can only be loaded once unless dark magic is used.
+  #
+  # See implementation for yourself.
+  def self.boot_and_load filename = Jobfile::find
+    JobCo::boot(filename)
+    JobCo::Jobs::require_files
   end
 
   def self.redis # :nodoc:
