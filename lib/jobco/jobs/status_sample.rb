@@ -13,6 +13,9 @@ module JobCo
         STDERR.puts "Hi I'm a sample JobCo Resque Worker !"
         STDERR.puts "This will show up on worker process STDERR, will probably end up in /dev/null."
 
+        # this will just update the status line before we roll
+        tick "Loading ..."
+
         global_redis = Redis.new
         job_fail "Why, no redis ?" unless global_redis
 

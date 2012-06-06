@@ -3,24 +3,15 @@
 # This is a sample Jobfile
 
 # Where are your jobs ?
-# Use job_load_path and job_module to tell JobCo.
-#
-# job_load_path "/fantasy/jobs"
-# job_module Fantasy::Jobs
-#
-# This assumes your code resides in the /fantasy/jobs directory
-# and that it is contained in *.rb files.
-#
-# More realistically, this could look like:
-#
-# job_load_path File::join(File::dirname(__FILE__), "jobs")
+# Use job_load_path !
+job_load_path File::expand_path("../lib/jobco/jobs", __FILE__)
 
-# We're cheating because we know you have jobco !
-# no job_load_path here
-require "jobco/samples"
-job_module JobCo::SampleJobs
+# JobCo provides configuration facilities, which is implemented as an transparant,
+# yet intricate, construction of Open Structs.
+#
+# Once loaded, the JobConf is available through the global JobCo::Config object.
 
-# JobCo allows you to send configuration to your jobs, so that
+# store. allows you to send configuration to your jobs, so that
 # you can handle parameters like credentials without messing with
 # actual job parameters.
 

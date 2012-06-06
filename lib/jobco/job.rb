@@ -22,18 +22,18 @@ module JobCo
   # Let's designate `perform with arguments` as a `job method`,
   # and `perform without arguments` as a `job procedure`.
   #
-  # The minimal job example above is a `job procedure`. A `job method` might
-  # look like the following:
+  # The minimal job example above would then be a `job procedure`. 
+  # A `job method` might look like the following:
   #
   #    require "jobco/job"
   #
   #    class MyParametrizedJob < JobCo::Job
   #      def perform arg_a, arg_b
-  #        # anything goes here ...
+  #        # anything goes here (presumably with arg_a and arg_b) ...
   #      end
   #    end
   #
-  # Keep the following in mind using `job methods` :
+  # Keep the following in mind using `job methods` (_with arguments_ that is) :
   #
   # * Worker procedures can be scheduled using `jobco jobs enqueue` and similar
   #   tools.
@@ -46,19 +46,22 @@ module JobCo
   #   your job.
   #
   # * The arguments will be serialized to JSON format. When passing objects as arguments
-  #   to JobCo::enqueue (and its siblings), be wary of what #to_json will yield for your
-  #   arguments.
+  #   to JobCo::enqueue (and its siblings), be wary of what #to_json will yield for the
+  #   arguments you pass.
   #
   # * If all your arguments are static in nature, see `Configured jobs` parts below,
-  #   as it can be helpful in order to convert a `job method` into a 
-  #   `configured job procedure`.
+  #   as it is generally more convenient to have a `configured job procedure` instead of
+  #   a `job method`.
   #
   # === Fancier jobs - with status!
   #
-  # Inside your perform code, you might want to use the following :
+  # If you'd like job introspection tools to provide insight about running jobs,
+  # you might want to manually update the _job status_.
+  #
+  # The JobWithStatus plugin provides facilities to do just that. Use:
   #
   # * Live status report : #tick , #at
-  # * End status report : #completed , #failed
+  # * Final report : #completed , #failed
   #
   # XXX see lib/jobco/jobs/status_sample.rb
   #
@@ -67,12 +70,9 @@ module JobCo
   # At enqueue time, JobCo will store the JobCo::Config object in redis,
   # that will be used once for that queued job and deleted afterwards.
   #
-  # Let's assume your Jobfile contains the following:
+  # It is very convenient for values you'd otherwise hack in as 'static values'.
   #
-  #    job_conf "webservice_api_key" "XXX"
-  #    job_conf "webservice_api_token" "42" * 42
-  #
-  # Then, it is safe to query the configured values from your jobs like so:
+  # If you would like to write jobs like this one:
   #
   #    def perform
   #      # ...
@@ -80,12 +80,17 @@ module JobCo
   #      key = jobconf.webservice_api_key
   #      tok = jobconf.webservice_api_token
   #
-  #      o = webservice_call(key, tok, my_call_parameters)
+  #      o = call_webservice(key, tok, my_call_parameters)
   #      mess_with_o(o)
   #
   #      # ...
   #    end
   #
+  # You would define the key and token in your Jobfile like so:
+  #
+  #    job_conf "webservice_api_key" "XXX"
+  #    job_conf "webservice_api_token" "42" * 42
+
   class Job < ::Resque::JobWithStatus
     # Call this manually in your perform() code if you operate a resque deployment
     # where some workers load rails and some don't.
@@ -128,7 +133,7 @@ module JobCo
     end
 
     # A JobCo-using developer would not call this directly.
-    # For clearer semantics, prefer `JobCo::enqueue(YourJob)`.
+    # For clearer semantics, prefer `JobCo::enqueue(MyJobClass)`.
     #
     # Calling create will result in job enqueing.
     def self.create *args # :nodoc:
@@ -187,6 +192,7 @@ module JobCo
     end
 
     # This is called when someone subclasses JobCo::Job
+    # XXX: can this work if it's private ?
     def self.inherited subclass # :nodoc:
       JobCo::Jobs::register_available_job(subclass)
     end
