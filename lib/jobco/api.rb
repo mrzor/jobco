@@ -24,14 +24,20 @@ module JobCo
   module API
     # Regular Resque style enqueue
     #
-    # This will fire up the job exactly once, ASAP
+    # This will fire up the job exactly once, ASAP.
+    # Should return UUID if job has status plugin, true otherwise. (?)
+    #
     # === Examples
     #
     #   # From your controllers or models
     #   JobCo.enqueue(Jobs::CrushImages, image.id)
     #   JobCo.enqueue(Jobs::WelcomeEmail, user.id)
     def enqueue job_class, *args
-      job_class.create(*args)
+      if job_class.ancestors.include?(Resque::Plugins::Status)
+        job_class.create(*args)
+      else
+        ::Resque.enqueue(job_class, *args)
+      end
     end
 
     # resque-scheduler enqueue_at

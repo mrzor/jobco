@@ -7,6 +7,8 @@ module JobCo
     class ResqueWorker < Clamp::Command
       self.description = "Manage worker processes"
 
+      option ["-j", "--jobfile"], "JOBFILE", "Use a specific Jobfile (default: looks up for Jobfile in current dir or any parent)", :default => JobCo::Jobfile.find
+
       subcommand "stop", "guess what?" do
         self.description = <<EODOC
 Stop Worker processes.
@@ -61,7 +63,6 @@ EODOC
                "PID_FILE", "XXX PIDFILE DOC",
                :default => ENV['PIDFILE'])
 
-
         parameter "[ID]", "unique identifier for the worker",
                   :default => '1', :attribute_name => :id
 
@@ -71,7 +72,7 @@ EODOC
           require 'resque/worker'
 
           require 'jobco'
-          JobCo::boot
+          JobCo::boot(jobfile)
 
           # `once` means before forking worker sub processes
           # xxx: answer question 'can this be done after backgrounding?'
@@ -94,6 +95,7 @@ EODOC
           worker = ::Resque::Worker.new(queues)
           worker.verbose = !quiet?
           worker.very_verbose = verbose?
+          worker.log "Starting worker #{worker}"
           worker.work(interval)
 
           # If we shall even reach this, we shall remove the PID file.

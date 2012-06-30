@@ -2,10 +2,14 @@
 
 source "http://rubygems.org"
 
-gem 'resque', '>= 1.17.1'
-gem 'resque-scheduler', '>= 2.0.0d'
-gem 'resque-status', '>= 0.2.3'
+gem 'redis-namespace', :git => "https://github.com/defunkt/redis-namespace.git"
+# gem 'resque', :git => "https://github.com/defunkt/resque.git", :branch => "master"
+# gem 'resque', :path => "../../resque"
+gem 'resque', :git => "https://github.com/mrzor/resque", :branch => "1-x-stable_various_fixes"
+gem 'resque-scheduler', '>= 2.0.0'
+gem 'resque-status', '>= 0.3.0'
 gem 'clamp', '>= 0.3.0'
 
-gem 'garb'
-gem 'i18n'
+group :development do
+  gem 'pry'
+end

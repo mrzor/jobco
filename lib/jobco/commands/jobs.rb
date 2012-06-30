@@ -33,9 +33,6 @@ module JobCo
           JobCo::boot_and_load(jobfile)
           job_class = JobCo::Jobs::select_job(name)
 
-          # FIXME: jobconf this ...
-          ::Resque::Status.expire_in = 7 * (72 * 60 * 60) # A week, in seconds
-
           job_id = JobCo::enqueue(job_class)
           puts "Queued #{job_class}, ID=#{job_id}"
         end

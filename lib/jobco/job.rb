@@ -1,5 +1,4 @@
 require "resque"
-require "resque/job_with_status"
 require "base64"
 
 module JobCo
@@ -91,7 +90,7 @@ module JobCo
   #    job_conf "webservice_api_key" "XXX"
   #    job_conf "webservice_api_token" "42" * 42
 
-  class Job < ::Resque::JobWithStatus
+  class Job # < ::Resque::JobWithStatus
     # Call this manually in your perform() code if you operate a resque deployment
     # where some workers load rails and some don't.
     #
@@ -136,6 +135,8 @@ module JobCo
     # For clearer semantics, prefer `JobCo::enqueue(MyJobClass)`.
     #
     # Calling create will result in job enqueing.
+    #
+    # This wraps (used to wrap resque scheduler)
     def self.create *args # :nodoc:
       self.enqueue(self, *args)
     end

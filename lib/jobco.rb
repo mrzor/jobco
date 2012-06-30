@@ -71,3 +71,6 @@ module JobCo
     @@redis ||= Redis::Namespace.new("jobco", :redis => ::Resque.redis.redis)
   end
 end
+
+# XXX ?
+require "jobco-plugins"

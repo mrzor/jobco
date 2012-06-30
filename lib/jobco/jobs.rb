@@ -28,7 +28,6 @@ module JobCo
 
     # called by JobCo::Job::inherited()
     def self.register_available_job job_class # :nodoc:
-      fail "bad job class: #{job_class}" unless job_class.ancestors.include?(JobCo::Job)
       @@available_jobs << job_class unless @@available_jobs.include?(job_class)
     end
 

@@ -4,7 +4,7 @@
 
 # Where are your jobs ?
 # Use job_load_path !
-job_load_path File::expand_path("../lib/jobco/jobs", __FILE__)
+job_load_path File::expand_path("../samples", __FILE__)
 
 # JobCo provides configuration facilities, which is implemented as an transparant,
 # yet intricate, construction of Open Structs.
@@ -35,3 +35,8 @@ env :production do
 
   # jobconf :require_rails, :once
 end
+
+jobconf "resque_redis", {}
+
+require "resque-status"
+Resque::Plugins::Status::Hash.expire_in = (60 * 60) # 1 hour

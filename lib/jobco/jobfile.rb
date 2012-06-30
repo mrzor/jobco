@@ -51,7 +51,7 @@ module JobCo
 
     def job_load_path dir
       Config.job_load_path << dir
-      Dir[File::join(dir, "*.rb")].each { |f| require f }
+      Dir[File::join(dir, "*.rb")].each { |f| require f } # XXX
     end
 
     # @jobco_readonly is used so that configuration for env
@@ -68,6 +68,7 @@ module JobCo
     end
 
     def env env_name, &blk
+      # XXX do a proper JOBCO_ENV and document it
       @jobco_readonly = true if (ENV["RACK_ENV"] || "development") != env_name.to_s
       blk.call
       @jobco_readonly = nil
