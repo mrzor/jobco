@@ -26,6 +26,7 @@ env :development do
     subkey_b: 1337
   }
 
+  # JobCo::Plugins::Status.expire_after = 3600 # 1 hour
   # jobconf :require_rails, :each_time
 end
 
@@ -34,9 +35,14 @@ env :production do
   jobconf "very serious", "value"
 
   # jobconf :require_rails, :once
+  # JobCo::Plugins::Status.expire_after = 86400 * 30 # 30 days
 end
 
 jobconf "resque_redis", {}
 
-require "resque-status"
-Resque::Plugins::Status::Hash.expire_in = (60 * 60) # 1 hour
+# Strongly advised: use a separate redis connection for your
+# perform code, so that you can separately FLUSHDB resque/jobco
+# without impacting your valuable data.
+
+# Static configuration
+JobCo::Plugins::Status.expire_after = 3600 # 1 hour

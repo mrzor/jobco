@@ -10,11 +10,12 @@ module JobCo
       end
 
       module ClassMethods
-        def before_perform_test *args
+        def before_perform_jobco_base(*args)
         end
 
-        def on_failure_test exception, *args
-          puts "*" * 50
+        def on_failure_jobco_base(exception, *args)
+          puts "*** JobCo::Plugins::Base Exception Printer"
+          puts "***\n" * 3
           puts exception
           puts "\nBacktrace:"
           puts exception.backtrace.join("\n")
