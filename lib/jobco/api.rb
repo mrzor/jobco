@@ -33,11 +33,7 @@ module JobCo
     #   JobCo.enqueue(Jobs::CrushImages, image.id)
     #   JobCo.enqueue(Jobs::WelcomeEmail, user.id)
     def enqueue job_class, *args
-      if job_class.ancestors.include?(Resque::Plugins::Status)
-        job_class.create(*args)
-      else
-        ::Resque.enqueue(job_class, *args)
-      end
+      ::Resque.enqueue(job_class, *args)
     end
 
     # resque-scheduler enqueue_at

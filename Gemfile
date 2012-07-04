@@ -7,7 +7,6 @@ gem 'redis-namespace', :git => "https://github.com/defunkt/redis-namespace.git"
 # gem 'resque', :path => "../../resque"
 gem 'resque', :git => "https://github.com/mrzor/resque", :branch => "1-x-stable_various_fixes"
 gem 'resque-scheduler', '>= 2.0.0'
-gem 'resque-status', '>= 0.3.0'
 gem 'clamp', '>= 0.3.0'
 
 group :development do

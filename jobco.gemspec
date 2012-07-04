@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency('resque', '>= 1.20.1')
   s.add_dependency('resque-scheduler', '>= 2.0.0f')
-  s.add_dependency('resque-status', '>= 0.3.1')
   s.add_dependency('clamp', '>= 0.3.0')
+  s.add_dependency('uuid', '~> 2.3')
 
   libglob = File::join(File::dirname(__FILE__), "lib/**/*")
   binglob = File::join(File::dirname(__FILE__), "bin/jobco*")

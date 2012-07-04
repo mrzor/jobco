@@ -6,12 +6,13 @@ module JobCo
   #
   # Lots can be done with as little code as this :
   #
-  #    require "jobco/job"
+  #    require "jobco"
   #
-  #    class MyJob < JobCo::Job
+  #    class MyJob
+  #      include JobCo::Plugins::Base
   #      @queue = 'my_queue'
   #
-  #      def perform
+  #      def self.perform
   #        # anything goes here ...
   #      end
   #    end
@@ -44,25 +45,15 @@ module JobCo
   #   of arguments. If you fail to do so, the worker process will fail to execute
   #   your job.
   #
-  # * The arguments will be serialized to JSON format. When passing objects as arguments
-  #   to JobCo::enqueue (and its siblings), be wary of what #to_json will yield for the
-  #   arguments you pass.
+  # * The arguments will be encoded and be stored into redis between enqueue and perform.
+  #   When passing objects as arguments, beware that the default encoder is MultiJSON.
+  #   You should therefore be careful of the result of `Resque::Helpers.encode` on your
+  #   arguments.
   #
   # * If all your arguments are static in nature, see `Configured jobs` parts below,
   #   as it is generally more convenient to have a `configured job procedure` instead of
   #   a `job method`.
   #
-  # === Fancier jobs - with status!
-  #
-  # If you'd like job introspection tools to provide insight about running jobs,
-  # you might want to manually update the _job status_.
-  #
-  # The JobWithStatus plugin provides facilities to do just that. Use:
-  #
-  # * Live status report : #tick , #at
-  # * Final report : #completed , #failed
-  #
-  # XXX see lib/jobco/jobs/status_sample.rb
   #
   # === Configured jobs
   #
@@ -129,73 +120,6 @@ module JobCo
       @jobconf = Marshal.load(Base64.decode64(raw_conf))
       JobCo::redis.hdel("conf", @uuid)
       @jobconf
-    end
-
-    # A JobCo-using developer would not call this directly.
-    # For clearer semantics, prefer `JobCo::enqueue(MyJobClass)`.
-    #
-    # Calling create will result in job enqueing.
-    #
-    # This wraps (used to wrap resque scheduler)
-    def self.create *args # :nodoc:
-      self.enqueue(self, *args)
-    end
-
-    # A JobCo-using developer would not call this directly.
-    # Overrides Resque::JobWithStatus
-    def self.perform(uuid = nil, *args)  # :nodoc:
-      uuid ||= Resque::Status.generate_uuid
-      instance = new(uuid)
-      instance.send(:jobco_boot)
-      instance.tick "Perform job #{uuid}"
-      instance.safe_perform! *args
-      instance
-    end
-
-    # A JobCo-using developer would not call this directly.
-    # Overrides Resque::JobWithStatus
-    def self.enqueue(klass, *args) # :nodoc:
-      Config.uuid = ::Resque::Status.create
-      packed_config = Base64.encode64(Marshal.dump(JobCo::Config))
-      JobCo::redis.hset("conf", Config.uuid, packed_config)
-      ::Resque.enqueue(klass, Config.uuid, *args)
-      Config.uuid
-    end
-
-    # A JobCo-using developer would not call this directly.
-    # Overrides Resque::JobWithStatus
-    def safe_perform! *args # :nodoc:
-      set_status({'status' => 'working'})
-      perform *args
-      completed unless status && status.completed?
-      on_success if respond_to?(:on_success)
-    rescue Killed
-      logger.info "Job #{self} Killed at #{Time.now}"
-      Resque::Status.killed(uuid)
-      on_killed if respond_to?(:on_killed)
-    rescue => e
-      logger.error e
-      failed("The task failed because of an error: #{e}")
-      if respond_to?(:on_failure)
-        on_failure(e)
-      else
-        raise e
-      end
-    end
-
-    # A JobCo-using developer would not call this directly.
-    #
-    # Job::scheduled is a Resque::Scheduler API that allows
-    # interoperation with Resque::JobWithStatus
-    def self.scheduled(queue, klass, *args) # :nodoc:
-      @queue = queue
-      self.create(*args)
-    end
-
-    # This is called when someone subclasses JobCo::Job
-    # XXX: can this work if it's private ?
-    def self.inherited subclass # :nodoc:
-      JobCo::Jobs::register_available_job(subclass)
     end
 
     private
