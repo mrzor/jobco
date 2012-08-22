@@ -1,48 +1,30 @@
 # -*- ruby -*-
 
-# This is a sample Jobfile
+# This is the sample/reference Jobfile
 
-# Where are your jobs ?
-# Use job_load_path !
-job_load_path File::expand_path("../samples", __FILE__)
+# Use job_load_path to tell jobco where you job code is located.
+# JobCo tries to be clever about loading your job code, so that you don't have to.
+JobCo::Config.job_load_path = File::expand_path("../samples", __FILE__)
 
-# JobCo provides configuration facilities, which is implemented as an transparant,
-# yet intricate, construction of Open Structs.
-#
-# Once loaded, the JobConf is available through the global JobCo::Config object.
+# TTL for status keys
+JobCo::Plugins::Status.expire_after = 3600 # 1 hour
 
-# store. allows you to send configuration to your jobs, so that
-# you can handle parameters like credentials without messing with
-# actual job parameters.
+# You might want to set things differently depending on the environment
+case JobCo::env
+  when "development" then
+    JobCo::Config.job_load_mode = :each_time
+    # JobCo::Plugins::RailsLoader.mode = :each_time
 
-# It also eases the burden of setting up job configuration at enqueue
-# time, removing the dependency between the worker instance and configuration
-# data. If configuration changes, workers don't have to be updated immediately.
+  when "production"
+    JobCo::Plugins::Status.expire_after = 86400 * 14 # 2 weeks
+    JobCo::Config.job_load_mode = :once
 
-env :development do
-  jobconf "key_a", "value"
-  jobconf "key_b", {
-    subkey_a: "w00t",
-    subkey_b: 1337
-  }
-
-  # JobCo::Plugins::Status.expire_after = 3600 # 1 hour
-  # jobconf :require_rails, :each_time
+    # JobCo::Plugins::RailsLoader.mode = :each_time
 end
-
-env :production do
-  # otherwise, you want to set serious values.
-  jobconf "very serious", "value"
-
-  # jobconf :require_rails, :once
-  # JobCo::Plugins::Status.expire_after = 86400 * 30 # 30 days
-end
-
-jobconf "resque_redis", {}
 
 # Strongly advised: use a separate redis connection for your
 # perform code, so that you can separately FLUSHDB resque/jobco
-# without impacting your valuable data.
-
-# Static configuration
-JobCo::Plugins::Status.expire_after = 3600 # 1 hour
+# without impacting any valuable data you might store in redis.
+#
+# JobCo will use the Resque.redis connection when needed
+Resque.redis = Redis.new

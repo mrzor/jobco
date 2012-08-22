@@ -10,6 +10,8 @@ def _jobco_path *x # :nodoc:
   File::join(File::dirname(__FILE__), "jobco", *x)
 end
 
+require "resque"
+
 # JobCo is a Resque distribution.
 #
 # It wraps Resque, alongside the +JobWithStatus+ and +Scheduler+ plugins,
@@ -41,19 +43,7 @@ module JobCo
   def self.boot filename = Jobfile::find
     Jobfile::evaluate filename # populate JobCo::Config
 
-    resque_redis = Config.resque_redis
-    if resque_redis
-      if resque_redis.is_a?(String)
-        Resque.redis = resque_redis
-      elsif resque_redis.is_a?(Hash)
-        Resque.redis = Redis.new(resque_redis)
-      elsif resque_redis == :default
-      else
-        fail "invalid 'resque_redis' jobconf : `#{resque_redis}`"
-      end
-    else
-      fail "Jobfile: `jobconf 'resque_redis'` is mandatory."
-    end
+    # assert Resque.redis.is_a?(Redis)
   end
 
   # General purpose JobCo initialization routine.
@@ -64,7 +54,25 @@ module JobCo
   # See implementation for yourself.
   def self.boot_and_load filename = Jobfile::find
     JobCo::boot(filename)
-    JobCo::Jobs::require_files
+    JobCo::Jobs::load_files
+  end
+
+  # JobCo environment
+  #
+  # Usually one of the "development", "test", "production" strings
+  # Take its value from environment, using the first variable from JOBCO_ENV, RAILS_ENV or RACK_ENV
+  # If none of the above variables are found, it defaults to "development" 
+  def self.env
+    @@env ||= ENV["JOBCO_ENV"] || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+    @@env
+  end
+
+  # JobCo environment setter.
+  #
+  # Use this to manually force an environment (in Jobfile)
+  # You should probably use the environment variables rather than this.
+  def self.env= env
+    @@env = env
   end
 
   def self.redis # :nodoc:
@@ -73,4 +81,5 @@ module JobCo
 end
 
 # XXX ?
+require "jobco/resque_worker_hooks"
 require "jobco-plugins"

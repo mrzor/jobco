@@ -7,6 +7,8 @@ module JobCo
   # XXX
   # see sample
   #
+  # see JobCo::Config attributes for properties you might want to configure inside your Jobfile.
+  #
   # = Job configuration
   # When it changed, you might want to reload your scheduler or rails app.
   #
@@ -46,32 +48,6 @@ module JobCo
     # weird combination of Jobfiles are unsupported atm.
     def initialize filename
       @@filename = filename
-      Config.job_load_path = []
-    end
-
-    def job_load_path dir
-      Config.job_load_path << dir
-      Dir[File::join(dir, "*.rb")].each { |f| require f } # XXX
-    end
-
-    # @jobco_readonly is used so that configuration for env
-    # different than current env is still interpreted and checked for errors
-    # the following should be caught, in fact, in development environment.
-    #
-    # ex:
-    # env :production do
-    #   XXX_SYNTAX_ERROR_XXX
-    # end
-    def jobconf k, v
-      return if @jobco_readonly
-      Config.send("#{k}=", v)
-    end
-
-    def env env_name, &blk
-      # XXX do a proper JOBCO_ENV and document it
-      @jobco_readonly = true if (ENV["RACK_ENV"] || "development") != env_name.to_s
-      blk.call
-      @jobco_readonly = nil
     end
   end
 end
