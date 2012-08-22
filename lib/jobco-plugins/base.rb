@@ -6,7 +6,6 @@ module JobCo
       def self.included(base)
         ::JobCo::Jobs.register_available_job(base)
         base.extend(ClassMethods)
-        puts "JobCo::Plugins::Base included in #{base}"
       end
 
       module ClassMethods

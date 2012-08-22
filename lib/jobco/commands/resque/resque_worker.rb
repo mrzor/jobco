@@ -76,7 +76,8 @@ EODOC
 
           # `once` means before forking worker sub processes
           # xxx: answer question 'can this be done after backgrounding?'
-          JobCo::Job::require_rails if JobCo::Config.require_rails == :once
+          # XXX: should be in JobCo::Plugins
+          # JobCo::Job::require_rails if JobCo::Config.require_rails == :once
 
           if background?
             abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
@@ -84,7 +85,7 @@ EODOC
           end
 
           # create pid directory if necessary
-          pid_file = pidfile || "/tmp/jobco-#{`whoami`.strip}/worker_#{id}.pid"
+          pid_file = pidfile || "/tmp/jobco-#{ENV["USER"].strip}/worker_#{id}.pid"
           pid_dir = File.dirname(pid_file)
           Dir.mkdir(pid_dir) unless Dir.exists?(pid_dir)
 

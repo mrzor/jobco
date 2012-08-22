@@ -1,3 +1,4 @@
 Gemfile.lock
 *.gem
 bin/*@*
+test/redis-test.log

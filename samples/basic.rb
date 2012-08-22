@@ -6,6 +6,9 @@ class BasicSample
   @queue = "jobco_samples"
 
   def self.perform
+    # this job does nothing when being used for testing
+    return if $TESTING
+
     puts "Hi I'm a sample JobCo Resque Worker !"
     puts "This will show up on worker process STDOUT, and might not be logged."
     puts "I will now waste CPU cycles and Redis memory for one minute ..."

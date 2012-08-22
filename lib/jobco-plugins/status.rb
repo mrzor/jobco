@@ -1,3 +1,4 @@
+require "resque/job"
 require "jobco-plugins/status_entry"
 require "jobco-plugins/status_hash"
 
