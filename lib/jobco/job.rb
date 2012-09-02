@@ -2,6 +2,9 @@ require "resque"
 require "base64"
 
 module JobCo
+  # XXX: JobCo::Job is deprecated, and all of the containing code/doc should have been
+  # deleted by now. Delete as soon as sure.
+  #
   # === Minimal job example
   #
   # Lots can be done with as little code as this :

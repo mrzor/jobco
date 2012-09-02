@@ -1,7 +1,7 @@
 require "jobco/commands/resque"
 require "jobco/commands/jobs"
 
-module JobCo # :nodoc:
+module JobCo
   module Commands # :nodoc:
     class Main < Clamp::Command # :nodoc:
       subcommand "resque", "control resque, clamp style", Resque

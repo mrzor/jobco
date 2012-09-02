@@ -9,7 +9,7 @@ class BasicSample
     # this job does nothing when being used for testing
     return if $TESTING
 
-    puts "Hi I'm a sample JobCo Resque Worker !"
+    puts "Hi I'm sample JobCo Resque code !"
     puts "This will show up on worker process STDOUT, and might not be logged."
     puts "I will now waste CPU cycles and Redis memory for one minute ..."
 
@@ -18,6 +18,6 @@ class BasicSample
       sleep 0.2
     end
 
-    puts "This is JobCo Sample Resque Worker. I have completed."
+    puts "This is JobCo Sample Resque code. I have completed."
   end
 end

@@ -2,6 +2,7 @@ require "ostruct"
 require "jobco/config"
 
 module JobCo
+
   # = Jobfile basics
   #
   # XXX

@@ -1,17 +1,22 @@
 module JobCo
+  ##
   # JobCo::API regroup functions that programatically trigger jobs.
   # See JobCo::Jobs for functions that provide information about jobs.
   #
   # === Immediate enqueue
   #
-  # The simplest form of programatic job control is _enqueuing_, a fundamental
-  # Resque operation. See #enqueue and (DOC FIXME: link to Resque doc)
+  # The simplest form of programatic job control is _enqueuing_. Enqueuing results 
+  # in deferred job performing inside a worker process. JobCo's implementation is a 
+  # simple forward to Resque.enqueue - calling JobCo.enqueue() and Resque.enqueue() 
+  # work in the same fashion.
+  # See #enqueue and (DOC FIXME: link to Resque doc)
   #
-  # === Postponed enqueue
+  # === Deferred enqueue
   #
-  # Resque Scheduler, an extension bundled with JobCo, expands the scope
-  # to _deferred_ and _scheduled_ jobs. Deferred or scheduled jobs are
-  # queued at a later point in time - that you specify.
+  # Resque Scheduler, a resque plugin, is supported and wrapped up by JobCo.
+  # It allows you to either _defer_ jobs (to have them enqueued at a later time) or
+  # _schedule_ them (to have them enqueued at a specific time, in a possibly recurring way).
+  # DOC FIXME: link to resque-scheduler docs
   #
   # === Syntax
   #

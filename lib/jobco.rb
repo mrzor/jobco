@@ -12,6 +12,7 @@ end
 
 require "resque"
 
+##
 # JobCo is a Resque distribution.
 #
 # It wraps Resque, alongside the +JobWithStatus+ and +Scheduler+ plugins,
