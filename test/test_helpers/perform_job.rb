@@ -1,3 +1,5 @@
+# from resque/test/test_helper
+
 ##
 # Helper to perform job classes
 #

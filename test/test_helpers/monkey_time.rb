@@ -1,3 +1,4 @@
+# from resque/test/test_helper
 class Time
   # Thanks, Timecop
   class << self
