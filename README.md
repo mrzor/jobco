@@ -2,8 +2,7 @@
 
 JobCo is a Resque distribution.
 
-It provides an easy to use Resque package, that include plugins (rails loader, status), CLI tools () alongside the `JobWithStatus` and `Scheduler` plugins,
-into one easy to use package.
+It provides an easy to use Resque package, that include plugins (rails loader, status), CLI tools () and some integration with the `resque-scheduler` plugin, into one easy to use package.
 
 JobCo is open source software, licensed under the terms of the 3-clause BSD license, with an additional disclaimer. See LICENSE file for details.
 
@@ -36,7 +35,7 @@ For your job running projects, rolling out with JobCo means :
 
 ## Who should use JobCo
 
-* you want/need most of the features brought on by the Resque+Status+Scheduler combo
+* you want/need most of the features brought on by JobCo plugins, or compatible Resque plugins
 * you'd rather have a convenient, surprise-less API to work with it
 * you find some interest in improvements brought forward by JobCo
 
