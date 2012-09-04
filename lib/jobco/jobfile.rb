@@ -5,8 +5,7 @@ module JobCo
 
   # = Jobfile basics
   #
-  # XXX
-  # see sample
+  # see sample at https://github.com/mrzor/jobco/blob/master/Jobfile.sample
   #
   # see JobCo::Config attributes for properties you might want to configure inside your Jobfile.
   #

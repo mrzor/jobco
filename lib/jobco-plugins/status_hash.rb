@@ -18,7 +18,7 @@ module JobCo
         @uuid = uuid || ::UUID.generate(:compact)
       end
 
-      # returns a {timestamp => status_entry} hash for all status entries stored
+      # returns a timestamp to status_entry hash for all status entries stored
       # returns an empty hash if there are no recorded status entries
       def statuses
         data = redis.zrevrange(key(:uuid, @uuid), 0, -1) || []

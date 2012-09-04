@@ -15,16 +15,15 @@ module JobCo
         # Use expire_after to have status data expire in redis automatically.
         # Default value is nil - meaning status data don't expire.
         #
-        # Set the following in your Jobfile to expire statuses:
+        # Set the following in your #Jobfile to expire statuses:
         # `JobCo::Plugins::Status.expire_after = 86400 * 7 # one week`
         attr_accessor :expire_after
 
+        # :nodoc:
         def included(base)
           base.extend(ClassMethods)
         end
-      end
 
-      module ClassMethods
         # high level status report
         def tick message = nil
           add_status "running", message
@@ -50,8 +49,11 @@ module JobCo
           # puts "ADD #{@status.uuid} #{status}: #{message || "nil"}"
         end
 
-        # Resque hooks
+      end
 
+      ##
+      # :nodoc:
+      module ResqueHooks        
         def before_enqueue_jobco_status *args
           @status = JobStatus.new
           raise Resque::Job::ChangeArgs.new(args.unshift(@status.uuid))
@@ -77,7 +79,7 @@ module JobCo
           add_status "dequeued"
         end
 
-        def on_failure_jobco_status exception, *args
+        def on_failure_jobco_status exception, *args 
           @@uuid = args.shift unless defined?(@@uuid)
           message = {
             exception_string: exception.to_s,
