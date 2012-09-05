@@ -9,20 +9,16 @@ module JobCo
     # it *does not* :
     # - include the kill subsystem of resque-status
     # - modify the resque API for job code (ie: use self.perform, enqueue as usual)
-
+    #
     module Status
       class << self
         # Use expire_after to have status data expire in redis automatically.
         # Default value is nil - meaning status data don't expire.
         #
-        # Set the following in your #Jobfile to expire statuses:
-        # `JobCo::Plugins::Status.expire_after = 86400 * 7 # one week`
+        #     # In Jobfile
+        #     JobCo::Plugins::Status.expire_after = 86400 * 7 # one week
+        #
         attr_accessor :expire_after
-
-        # :nodoc:
-        def included(base)
-          base.extend(ClassMethods)
-        end
 
         # high level status report
         def tick message = nil
@@ -49,10 +45,15 @@ module JobCo
           # puts "ADD #{@status.uuid} #{status}: #{message || "nil"}"
         end
 
+        # this is part of the trick to mass hide all the resque hooks from the doc
+        # @private
+        def included(base)
+          base.extend(ResqueHooks)
+        end
       end
 
-      ##
-      # :nodoc:
+      # this is a trick to mass hide all the resque hooks in the doc
+      # @private
       module ResqueHooks        
         def before_enqueue_jobco_status *args
           @status = JobStatus.new
