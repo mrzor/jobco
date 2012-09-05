@@ -33,12 +33,6 @@ For your job running projects, rolling out with JobCo means :
   controlling jobs. It is a Resque wrapper of sorts, with some (limited) extra features
   coming along.
 
-## Who should use JobCo
-
-* you want/need most of the features brought on by JobCo plugins, or compatible Resque plugins
-* you'd rather have a convenient, surprise-less API to work with it
-* you find some interest in improvements brought forward by JobCo
-
 ## Documentation
 
 Check it all out. Really. It's good for you.
