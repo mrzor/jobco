@@ -1,24 +1,13 @@
-# this rakefile is only used for development related tasks
+# this rakefile is used for development/maintenance related tasks
 # - launch testsuite
 # - generate rdoc manually for review
 
 # default task
 task :default => :test
 
-# # rdoc task
-# require 'rdoc/task'
-# RDoc::Task.new do |rd|
-# 	rd.main = "README.md"
-# 	rd.rdoc_files.include("README.md", "lib/**/*.rb", "samples/*.rb")
-# YARD
-
-require "yard"
-require "yard/rake/yardoc_task"
-YARD::Rake::YardocTask.new do |t|
-	# require "pry"
-	# binding.pry
-  t.files   = ['lib/*.rb', 'lib/jobco/*.rb', 'lib/jobco-plugins/*.rb', "samples/*.rb"]   # optional
-  # t.options = ['--any', '--extra', '--opts'] # optional
+# doc task, see .yardopts
+task "yard" do
+	exec "yardoc"
 end
 
 # test task

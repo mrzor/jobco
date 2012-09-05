@@ -1,0 +1,7 @@
+--no-private
+--title "JobCo"
+--output-dir /tmp/jobco-doc
+lib/*.rb
+lib/jobco/*.rb
+lib/jobco-plugins/*.rb
+- README.md LICENSE
