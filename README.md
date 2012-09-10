@@ -2,7 +2,7 @@
 
 JobCo is a Resque distribution.
 
-It provides an easy to use Resque package, that include plugins (rails loader, status), CLI tools () and some integration with the `resque-scheduler` plugin, into one easy to use package.
+It provides an easy to use Resque package, that includes plugins (rails loader, status), CLI tools (`jobco jobs ...`, `jobco resque ...`) and some integration with the `resque-scheduler` plugin, into one easy to use package.
 
 JobCo is open source software, licensed under the terms of the 3-clause BSD license, with an additional disclaimer. See LICENSE file for details.
 
@@ -11,11 +11,13 @@ JobCo is open source software, licensed under the terms of the 3-clause BSD lice
 **Warning**
 
 jobco/master (0.2+) depends on resque edge, for which the next release should be resque 2.0
-in addition, it uses features and patches not yet merged in defunkt/resque
-to get it jobco running, you will need to point it at mrzor/resque, branch `master_and_patches`
+in addition, it uses features and patches not yet merged in defunkt/resque.
+
+To get jobco edge running, you will need to use the resque provided at mrzor/resque, branch `master_and_patches`, which is probably going to involve using Bundler.
 
 jobco/0.1.x branch still lives, and supports an older resque stack (1.x). you might want to check that
 one out - at your own risk.
+
 
 ## What do I get ?
 
@@ -108,7 +110,7 @@ Et voila !
 * Jobco 0.2+ (currently on master branch) is not ready to be deployed in production, because it is based on resque 2.0+, the first
 release of which hasn't came out yet. I might be tempted to do a quick write up about how to run it in the wild if there's some interest. Shout me out on twitter, I'm @mr_zor there :)
 
-In the meantime `jobco resque --help` ('--help' will work for any subcommand) should provide enough insights for %w[chef puppet capistrano monit rake bash].any enthusiasts.
+In the meantime `jobco resque --help` ('--help' will work for any subcommand) should provide enough insights for `%w[chef puppet capistrano monit rake bash].any` enthusiasts.
 
 ## Helping out
 

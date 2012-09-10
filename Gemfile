@@ -12,11 +12,11 @@ gem 'resque', :git => "https://github.com/mrzor/resque", :branch => "master_and_
 gem 'resque-scheduler', '>= 2.0.0'
 gem 'clamp', '>= 0.3.0'
 
-gem 'yard'
-gem 'redcarpet'
-
 group :development do
   gem 'pry'
+  gem 'yard'
+  gem 'redcarpet'
+  # gem 'grit'
 end
 
 group :test do
