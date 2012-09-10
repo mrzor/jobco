@@ -73,7 +73,7 @@ require "jobco"
 class MyTestJob
   include JobCo::Plugins::Base
 
-  def perform
+  def self.perform
     # Do stuff !
     puts "stuff"
   end
