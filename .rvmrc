@@ -1,2 +1,2 @@
-rvm use 1.9.2@jobcenter
-alias jobco="ruby -Ilib bin/jobco"
+rvm --create 1.9.3@jobco
+alias jobco="bundle exec ruby -Ilib bin/jobco"
