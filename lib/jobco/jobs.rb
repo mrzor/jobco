@@ -49,6 +49,9 @@ module JobCo
     # XXXperimental
     def self.scan_available_jobs # :nodoc:
       Object.constants.map do |cname|
+        # avoid warning about deprecated Config object
+        next if cname == :Config
+
         cvalue = Object.const_get(cname)
         if cvalue.is_a?(Class) && cvalue.ancestors.include?(JobCo::Plugins::Base)
           cvalue
@@ -60,7 +63,7 @@ module JobCo
 
     # fuzzy matcher for jobs.
     # no result, or many results, raise a NoSuchJob exception
-    # pattern is to be any subset of a job class. search is case insensitive.
+    # pattern is to be any subset of the job class name. search is case insensitive.
     def self.select_job pattern
       c = available_jobs.select { |j| j.to_s.downcase.include?(pattern.downcase) }
       if c.size > 1
@@ -86,6 +89,5 @@ module JobCo
         }
       end
     end
-
   end
 end
