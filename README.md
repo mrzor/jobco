@@ -52,7 +52,7 @@ Check it all out. Really. It's good for you.
 
 * The [original Resque](https://github.com/defunkt/resque) documentation. You should really not miss out on this one.
 * [JobCo rdoc](http://rubydoc.info/github/mrzor/jobco)
-* [resque-scheduler rdoc]()
+* [resque-scheduler rdoc](http://rubydoc.info/github/bvandenbos/resque-scheduler)
 * `jobco --help`
 * the [samples](https://github.com/mrzor/jobco/tree/master/samples) directory in jobco's repository
 
