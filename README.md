@@ -24,7 +24,6 @@ In your Gemfile:
 ~~~ruby
 gem 'resque', :git => "https://github.com/mrzor/resque.git", :branch => 'master_and_patches'
 gem 'jobco', :git => "https://github.com/mrzor/jobco.git", :branch => 'master'
-end
 ~~~
 
 jobco/0.1.x branch still lives, and supports an older resque stack (1.x). you might want to check that
@@ -51,11 +50,11 @@ For your job running projects, rolling out with JobCo means :
 
 Check it all out. Really. It's good for you.
 
-* The original Resque documentation. You should really not miss out on this one.
-* JobCo RDoc
-* resque-scheduler RDoc
+* The [original Resque](https://github.com/defunkt/resque) documentation. You should really not miss out on this one.
+* [JobCo rdoc](http://rubydoc.info/github/mrzor/jobco)
+* [resque-scheduler rdoc]()
 * `jobco --help`
-* the `samples` directory in jobco's repository
+* the [samples](https://github.com/mrzor/jobco/tree/master/samples) directory in jobco's repository
 
 ## Get me started ! NOW !
 
