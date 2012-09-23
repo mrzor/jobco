@@ -20,6 +20,13 @@ in addition, it uses features and patches not yet merged in defunkt/resque.
 
 To get jobco edge running, you will need to use the resque provided at mrzor/resque, branch `master_and_patches`, which is probably going to involve using Bundler.
 
+In your Gemfile:
+~~~ruby
+gem 'resque', :git => "https://github.com/mrzor/resque.git", :branch => 'master_and_patches'
+gem 'jobco', :git => "https://github.com/mrzor/jobco.git", :branch => 'master'
+end
+~~~
+
 jobco/0.1.x branch still lives, and supports an older resque stack (1.x). you might want to check that
 one out - at your own risk.
 
