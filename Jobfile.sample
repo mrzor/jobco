@@ -9,17 +9,20 @@ JobCo::Config.job_load_path = File::expand_path("../samples", __FILE__)
 # TTL for status keys
 JobCo::Plugins::Status.expire_after = 3600 # 1 hour
 
+# If you plan on using JobCo::Plugins::RailsLoader, uncomment the following:
+# JobCo::Config.support_rails = true
+
 # You might want to set things differently depending on the environment
 case JobCo::env
   when "development" then
     JobCo::Config.job_load_mode = :each_time
-    # JobCo::Plugins::RailsLoader.mode = :each_time
+    # JobCo::Plugins::RailsLoader.rails_load_mode = :each_time
 
   when "production"
     JobCo::Plugins::Status.expire_after = 86400 * 14 # 2 weeks
     JobCo::Config.job_load_mode = :once
 
-    # JobCo::Plugins::RailsLoader.mode = :each_time
+    # JobCo::Plugins::RailsLoader.rails_load_mode = :once
 end
 
 # Strongly advised: use a separate redis connection for your

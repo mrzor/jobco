@@ -23,6 +23,13 @@ module JobCo
   		# - :once (before fork, good for production)
   		# - :each_time (after fork, good for development)
   		attr_accessor :job_load_mode
+
+      # setting this to true requires jobco-plugins/rails_loader
+      #
+      # Checkout JobCo::Plugins::RailsLoader documentation.
+      def support_rails= boolean
+        require "jobco-plugins/rails_loader" if boolean == true
+      end
 		end
 	end
 end
