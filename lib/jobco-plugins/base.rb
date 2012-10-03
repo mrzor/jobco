@@ -19,10 +19,11 @@ module JobCo
         # @private
         def included(base)
           ::JobCo::Jobs.register_available_job(base)
-          # base.extend(ClassMethods)
+          base.extend(ClassMethods)
         end
+      end
 
-      # module ClassMethods
+      module ClassMethods
 
         # XXX: this is mostly useless
         # @private
