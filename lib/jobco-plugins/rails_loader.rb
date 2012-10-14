@@ -50,8 +50,6 @@ module JobCo
           jobco_rails_load if RailsLoader.rails_load_mode == :each_time
         end
 
-        private
-
         def jobco_rails_load
           path = RailsLoader.rails_environment_path || Jobfile.relative_path("config", "environment.rb")
           unless File.exists?(path)
@@ -69,6 +67,8 @@ end
 Resque.before_first_fork do
   # load rails once if appropriate
   if JobCo::Plugins::RailsLoader.rails_load_mode == :once
-    JobCo::Plugins::RailsLoader.jobco_rails_load
+    class << Object.new
+      include JobCo::Plugins::RailsLoader
+    end.jobco_rails_load
   end
 end
