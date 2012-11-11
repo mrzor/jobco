@@ -43,7 +43,7 @@ module JobCo
   #
   def self.boot filename = Jobfile::find
     Jobfile::evaluate filename # populate JobCo::Config
-
+    require "jobco/resque_worker_hooks"
     # assert Resque.redis.is_a?(Redis)
   end
 
@@ -82,5 +82,4 @@ module JobCo
 end
 
 # XXX ?
-require "jobco/resque_worker_hooks"
 require "jobco-plugins"
