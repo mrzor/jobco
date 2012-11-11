@@ -74,11 +74,6 @@ EODOC
           require 'jobco'
           JobCo::boot(jobfile)
 
-          # `once` means before forking worker sub processes
-          # xxx: answer question 'can this be done after backgrounding?'
-          # XXX: should be in JobCo::Plugins
-          # JobCo::Job::require_rails if JobCo::Config.require_rails == :once
-
           if background?
             abort "background requires ruby >= 1.9" unless Process.respond_to?('daemon')
             Process.daemon(true)
@@ -94,13 +89,14 @@ EODOC
 
           # Finally, work.
           worker = ::Resque::Worker.new(queues)
-          worker.verbose = !quiet?
-          worker.very_verbose = verbose?
-          worker.log "Starting worker #{worker}"
+          # worker.verbose = !quiet?
+          # worker.very_verbose = verbose?
+          # worker.log "Starting worker #{worker}"
           worker.work(interval)
 
           # If we shall even reach this, we shall remove the PID file.
           # Don't SIGKILL me you insensitive bastard.
+          # XXX at_exit
           File.unlink(pid_file) if File.exists?(pid_file)
         end
       end
